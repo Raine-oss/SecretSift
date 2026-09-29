@@ -1,13 +1,31 @@
+pub mod cpp;
+pub mod csharp;
+pub mod dart;
+pub mod go;
 pub mod java;
-pub mod js_ts;
+pub mod javascript;
+pub mod kotlin;
+pub mod php;
 pub mod python;
+pub mod ruby;
 pub mod rust;
+pub mod swift;
+pub mod typescript;
 
 use crate::models::{Language, SecretMatch};
+use cpp::CppAdapter;
+use csharp::CSharpAdapter;
+use dart::DartAdapter;
+use go::GoAdapter;
 use java::JavaAdapter;
-use js_ts::JsTsAdapter;
+use javascript::JavaScriptAdapter;
+use kotlin::KotlinAdapter;
+use php::PhpAdapter;
 use python::PythonAdapter;
+use ruby::RubyAdapter;
 use rust::RustAdapter;
+use swift::SwiftAdapter;
+use typescript::TypeScriptAdapter;
 
 // Language Adapter Trait
 
@@ -26,8 +44,18 @@ pub fn get_adapter_for_language(lang: Language) -> Option<Box<dyn LanguageAdapte
     match lang {
         Language::Rust => Some(Box::new(RustAdapter::new())),
         Language::Java => Some(Box::new(JavaAdapter::new())),
-        Language::JavaScript | Language::TypeScript => Some(Box::new(JsTsAdapter::new(lang))),
+        Language::JavaScript => Some(Box::new(JavaScriptAdapter::new())),
+        Language::TypeScript => Some(Box::new(TypeScriptAdapter::new())),
         Language::Python => Some(Box::new(PythonAdapter::new())),
+        Language::Go => Some(Box::new(GoAdapter::new())),
+        Language::CSharp => Some(Box::new(CSharpAdapter::new())),
+        Language::Kotlin => Some(Box::new(KotlinAdapter::new())),
+        Language::Php => Some(Box::new(PhpAdapter::new())),
+        Language::Ruby => Some(Box::new(RubyAdapter::new())),
+        Language::C => Some(Box::new(CppAdapter::new(Language::C))),
+        Language::Cpp => Some(Box::new(CppAdapter::new(Language::Cpp))),
+        Language::Dart => Some(Box::new(DartAdapter::new())),
+        Language::Swift => Some(Box::new(SwiftAdapter::new())),
         Language::Unknown => None,
     }
 }

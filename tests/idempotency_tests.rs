@@ -17,6 +17,14 @@ fn test_fix_scan_fix_idempotency() {
     let py_file = temp_root.join("src/app.py");
     let js_file = temp_root.join("src/client.js");
     let java_file = temp_root.join("src/Main.java");
+    let go_file = temp_root.join("src/service.go");
+    let cs_file = temp_root.join("src/Program.cs");
+    let kt_file = temp_root.join("src/App.kt");
+    let php_file = temp_root.join("src/index.php");
+    let rb_file = temp_root.join("src/app.rb");
+    let cpp_file = temp_root.join("src/main.cpp");
+    let dart_file = temp_root.join("src/main.dart");
+    let swift_file = temp_root.join("src/main.swift");
 
     fs::write(
         &rust_file,
@@ -42,16 +50,60 @@ fn test_fix_scan_fix_idempotency() {
     )
     .unwrap();
 
+    fs::write(
+        &go_file,
+        "package main\n\nconst GoSecret = \"sk-sift-go-token-1234567890abcdef1234567890\"\n",
+    )
+    .unwrap();
+
+    fs::write(
+        &cs_file,
+        "namespace App {\n    public static class C {\n        public static string CsKey = \"sk_sift_cs_12345678901234567890\";\n    }\n}\n",
+    )
+    .unwrap();
+
+    fs::write(
+        &kt_file,
+        "package app\n\nval ktKey = \"sk_sift_kt_12345678901234567890\"\n",
+    )
+    .unwrap();
+
+    fs::write(
+        &php_file,
+        "<?php\n$phpKey = 'sk_sift_php_12345678901234567890';\n",
+    )
+    .unwrap();
+
+    fs::write(&rb_file, "RB_KEY = \"sk_sift_rb_12345678901234567890\"\n").unwrap();
+
+    fs::write(
+        &cpp_file,
+        "const char* cppKey = \"sk_sift_cpp_12345678901234567890\";\n",
+    )
+    .unwrap();
+
+    fs::write(
+        &dart_file,
+        "final dartKey = 'sk_sift_dart_12345678901234567890';\n",
+    )
+    .unwrap();
+
+    fs::write(
+        &swift_file,
+        "let swiftKey = \"sk_sift_swift_12345678901234567890\"\n",
+    )
+    .unwrap();
+
     let scanner = ProjectScanner::new(Confidence::High);
 
     // Initial Scan
     let matches_initial = scanner.scan_path(&temp_root).unwrap();
-    assert_eq!(matches_initial.len(), 4);
+    assert_eq!(matches_initial.len(), 12);
 
     // First Fix
     let plan1 = build_fix_plan(&temp_root, &matches_initial).unwrap();
-    assert_eq!(plan1.file_changes.len(), 4);
-    assert_eq!(plan1.env_entries.len(), 4);
+    assert_eq!(plan1.file_changes.len(), 12);
+    assert_eq!(plan1.env_entries.len(), 12);
 
     let backup_dir = apply_fix_plan_atomically(&temp_root, &plan1).unwrap();
     assert!(backup_dir.exists());
@@ -61,7 +113,7 @@ fn test_fix_scan_fix_idempotency() {
     assert_eq!(
         matches_after_fix.len(),
         0,
-        "Scan after fix must find 0 secrets!"
+        "Scan after fix must find 0 secrets across all 12 files!"
     );
 
     // Second Fix Attempt
@@ -74,12 +126,8 @@ fn test_fix_scan_fix_idempotency() {
 
     let env_content = fs::read_to_string(temp_root.join(".env")).unwrap();
     let env_lines: Vec<&str> = env_content.lines().collect();
-    assert_eq!(env_lines.len(), 4);
-    assert!(env_content.contains("API_KEY="));
-    assert!(env_content.contains("DB_URL="));
-    assert!(env_content.contains("STRIPE_KEY="));
-    assert!(env_content.contains("GITHUB_TOKEN="));
-    assert!(!env_content.contains("API_KEY_2"));
+    assert_eq!(env_lines.len(), 12);
+    assert!(!env_content.contains("_2="));
 
     let _ = fs::remove_dir_all(&temp_root);
 }

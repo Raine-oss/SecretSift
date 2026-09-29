@@ -234,3 +234,296 @@ fn test_typescript_fixture_validity() {
 
     let _ = fs::remove_dir_all(&sandbox);
 }
+
+// Go Project Fixture Test
+
+#[test]
+fn test_go_fixture_validity() {
+    let fixture_src = PathBuf::from("tests/fixtures/go_project");
+    let sandbox = PathBuf::from("target/test_sandbox/go_project");
+
+    let _ = fs::remove_dir_all(&sandbox);
+    copy_dir_all(&fixture_src, &sandbox).unwrap();
+
+    let scanner = ProjectScanner::new(Confidence::High);
+
+    let initial_matches = scanner.scan_path(&sandbox).unwrap();
+    assert!(
+        !initial_matches.is_empty(),
+        "Should detect secrets in initial Go fixture"
+    );
+
+    let plan = build_fix_plan(&sandbox, &initial_matches).unwrap();
+    apply_fix_plan_atomically(&sandbox, &plan).unwrap();
+
+    let after_matches = scanner.scan_path(&sandbox).unwrap();
+    assert_eq!(
+        after_matches.len(),
+        0,
+        "No secrets should remain after fix in Go fixture"
+    );
+
+    let cfg_content = fs::read_to_string(sandbox.join("config/config.go")).unwrap();
+    assert!(cfg_content.contains("os.Getenv(\"DATABASE_URL\")"));
+    assert!(cfg_content.contains("import \"os\""));
+
+    let _ = fs::remove_dir_all(&sandbox);
+}
+
+// C# Project Fixture Test
+
+#[test]
+fn test_csharp_fixture_validity() {
+    let fixture_src = PathBuf::from("tests/fixtures/csharp_project");
+    let sandbox = PathBuf::from("target/test_sandbox/csharp_project");
+
+    let _ = fs::remove_dir_all(&sandbox);
+    copy_dir_all(&fixture_src, &sandbox).unwrap();
+
+    let scanner = ProjectScanner::new(Confidence::High);
+
+    let initial_matches = scanner.scan_path(&sandbox).unwrap();
+    assert!(
+        !initial_matches.is_empty(),
+        "Should detect secrets in initial C# fixture"
+    );
+
+    let plan = build_fix_plan(&sandbox, &initial_matches).unwrap();
+    apply_fix_plan_atomically(&sandbox, &plan).unwrap();
+
+    let after_matches = scanner.scan_path(&sandbox).unwrap();
+    assert_eq!(
+        after_matches.len(),
+        0,
+        "No secrets should remain after fix in C# fixture"
+    );
+
+    let cfg_content = fs::read_to_string(sandbox.join("Config.cs")).unwrap();
+    assert!(cfg_content.contains("Environment.GetEnvironmentVariable(\"DATABASE_URL\")"));
+    assert!(cfg_content.contains("using System;"));
+
+    let _ = fs::remove_dir_all(&sandbox);
+}
+
+// Kotlin Project Fixture Test
+
+#[test]
+fn test_kotlin_fixture_validity() {
+    let fixture_src = PathBuf::from("tests/fixtures/kotlin_project");
+    let sandbox = PathBuf::from("target/test_sandbox/kotlin_project");
+
+    let _ = fs::remove_dir_all(&sandbox);
+    copy_dir_all(&fixture_src, &sandbox).unwrap();
+
+    let scanner = ProjectScanner::new(Confidence::High);
+
+    let initial_matches = scanner.scan_path(&sandbox).unwrap();
+    assert!(
+        !initial_matches.is_empty(),
+        "Should detect secrets in initial Kotlin fixture"
+    );
+
+    let plan = build_fix_plan(&sandbox, &initial_matches).unwrap();
+    apply_fix_plan_atomically(&sandbox, &plan).unwrap();
+
+    let after_matches = scanner.scan_path(&sandbox).unwrap();
+    assert_eq!(
+        after_matches.len(),
+        0,
+        "No secrets should remain after fix in Kotlin fixture"
+    );
+
+    let cfg_content = fs::read_to_string(sandbox.join("Config.kt")).unwrap();
+    assert!(cfg_content.contains("System.getenv(\"DATABASE_URL\") ?: \"\""));
+
+    let _ = fs::remove_dir_all(&sandbox);
+}
+
+// PHP Project Fixture Test
+
+#[test]
+fn test_php_fixture_validity() {
+    let fixture_src = PathBuf::from("tests/fixtures/php_project");
+    let sandbox = PathBuf::from("target/test_sandbox/php_project");
+
+    let _ = fs::remove_dir_all(&sandbox);
+    copy_dir_all(&fixture_src, &sandbox).unwrap();
+
+    let scanner = ProjectScanner::new(Confidence::High);
+
+    let initial_matches = scanner.scan_path(&sandbox).unwrap();
+    assert!(
+        !initial_matches.is_empty(),
+        "Should detect secrets in initial PHP fixture"
+    );
+
+    let plan = build_fix_plan(&sandbox, &initial_matches).unwrap();
+    apply_fix_plan_atomically(&sandbox, &plan).unwrap();
+
+    let after_matches = scanner.scan_path(&sandbox).unwrap();
+    assert_eq!(
+        after_matches.len(),
+        0,
+        "No secrets should remain after fix in PHP fixture"
+    );
+
+    let cfg_content = fs::read_to_string(sandbox.join("config.php")).unwrap();
+    assert!(
+        cfg_content.contains("getenv('DATABASE_URL') ?: ''")
+            || cfg_content.contains("getenv('DB_URL') ?: ''")
+    );
+
+    let _ = fs::remove_dir_all(&sandbox);
+}
+
+// Ruby Project Fixture Test
+
+#[test]
+fn test_ruby_fixture_validity() {
+    let fixture_src = PathBuf::from("tests/fixtures/ruby_project");
+    let sandbox = PathBuf::from("target/test_sandbox/ruby_project");
+
+    let _ = fs::remove_dir_all(&sandbox);
+    copy_dir_all(&fixture_src, &sandbox).unwrap();
+
+    let scanner = ProjectScanner::new(Confidence::High);
+
+    let initial_matches = scanner.scan_path(&sandbox).unwrap();
+    assert!(
+        !initial_matches.is_empty(),
+        "Should detect secrets in initial Ruby fixture"
+    );
+
+    let plan = build_fix_plan(&sandbox, &initial_matches).unwrap();
+    apply_fix_plan_atomically(&sandbox, &plan).unwrap();
+
+    let after_matches = scanner.scan_path(&sandbox).unwrap();
+    assert_eq!(
+        after_matches.len(),
+        0,
+        "No secrets should remain after fix in Ruby fixture"
+    );
+
+    let cfg_content = fs::read_to_string(sandbox.join("config.rb")).unwrap();
+    assert!(cfg_content.contains("ENV['DATABASE_URL'] || ''"));
+
+    let _ = fs::remove_dir_all(&sandbox);
+}
+
+// C++ Project Fixture Test
+
+#[test]
+fn test_cpp_fixture_validity_and_compilation() {
+    let fixture_src = PathBuf::from("tests/fixtures/cpp_project");
+    let sandbox = PathBuf::from("target/test_sandbox/cpp_project");
+
+    let _ = fs::remove_dir_all(&sandbox);
+    copy_dir_all(&fixture_src, &sandbox).unwrap();
+
+    let scanner = ProjectScanner::new(Confidence::High);
+
+    let initial_matches = scanner.scan_path(&sandbox).unwrap();
+    assert!(
+        !initial_matches.is_empty(),
+        "Should detect secrets in initial C++ fixture"
+    );
+
+    let plan = build_fix_plan(&sandbox, &initial_matches).unwrap();
+    apply_fix_plan_atomically(&sandbox, &plan).unwrap();
+
+    let after_matches = scanner.scan_path(&sandbox).unwrap();
+    assert_eq!(
+        after_matches.len(),
+        0,
+        "No secrets should remain after fix in C++ fixture"
+    );
+
+    let cfg_content = fs::read_to_string(sandbox.join("config.cpp")).unwrap();
+    assert!(cfg_content.contains("getenv(\"DATABASE_URL\")"));
+    assert!(cfg_content.contains("#include <cstdlib>"));
+
+    let output = Command::new("g++")
+        .arg("-fsyntax-only")
+        .arg(sandbox.join("config.cpp"))
+        .arg(sandbox.join("main.cpp"))
+        .output()
+        .expect("Failed to execute g++");
+
+    assert!(
+        output.status.success(),
+        "g++ compilation failed on refactored C++ code! stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let _ = fs::remove_dir_all(&sandbox);
+}
+
+// Dart Project Fixture Test
+
+#[test]
+fn test_dart_fixture_validity() {
+    let fixture_src = PathBuf::from("tests/fixtures/dart_project");
+    let sandbox = PathBuf::from("target/test_sandbox/dart_project");
+
+    let _ = fs::remove_dir_all(&sandbox);
+    copy_dir_all(&fixture_src, &sandbox).unwrap();
+
+    let scanner = ProjectScanner::new(Confidence::High);
+
+    let initial_matches = scanner.scan_path(&sandbox).unwrap();
+    assert!(
+        !initial_matches.is_empty(),
+        "Should detect secrets in initial Dart fixture"
+    );
+
+    let plan = build_fix_plan(&sandbox, &initial_matches).unwrap();
+    apply_fix_plan_atomically(&sandbox, &plan).unwrap();
+
+    let after_matches = scanner.scan_path(&sandbox).unwrap();
+    assert_eq!(
+        after_matches.len(),
+        0,
+        "No secrets should remain after fix in Dart fixture"
+    );
+
+    let cfg_content = fs::read_to_string(sandbox.join("config.dart")).unwrap();
+    assert!(cfg_content.contains("Platform.environment['DATABASE_URL'] ?? ''"));
+    assert!(cfg_content.contains("import 'dart:io';"));
+
+    let _ = fs::remove_dir_all(&sandbox);
+}
+
+// Swift Project Fixture Test
+
+#[test]
+fn test_swift_fixture_validity() {
+    let fixture_src = PathBuf::from("tests/fixtures/swift_project");
+    let sandbox = PathBuf::from("target/test_sandbox/swift_project");
+
+    let _ = fs::remove_dir_all(&sandbox);
+    copy_dir_all(&fixture_src, &sandbox).unwrap();
+
+    let scanner = ProjectScanner::new(Confidence::High);
+
+    let initial_matches = scanner.scan_path(&sandbox).unwrap();
+    assert!(
+        !initial_matches.is_empty(),
+        "Should detect secrets in initial Swift fixture"
+    );
+
+    let plan = build_fix_plan(&sandbox, &initial_matches).unwrap();
+    apply_fix_plan_atomically(&sandbox, &plan).unwrap();
+
+    let after_matches = scanner.scan_path(&sandbox).unwrap();
+    assert_eq!(
+        after_matches.len(),
+        0,
+        "No secrets should remain after fix in Swift fixture"
+    );
+
+    let cfg_content = fs::read_to_string(sandbox.join("config.swift")).unwrap();
+    assert!(cfg_content.contains("ProcessInfo.processInfo.environment[\"DATABASE_URL\"] ?? \"\""));
+    assert!(cfg_content.contains("import Foundation"));
+
+    let _ = fs::remove_dir_all(&sandbox);
+}

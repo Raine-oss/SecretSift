@@ -1,5 +1,6 @@
 # Generated Artifacts
 target/
+dist/
 **/*.rs.bk
 *.bk
 

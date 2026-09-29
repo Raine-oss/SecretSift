@@ -62,6 +62,15 @@ pub enum Language {
     JavaScript,
     TypeScript,
     Python,
+    Go,
+    CSharp,
+    Kotlin,
+    Php,
+    Ruby,
+    C,
+    Cpp,
+    Dart,
+    Swift,
     Unknown,
 }
 
@@ -73,6 +82,15 @@ impl Language {
             "js" | "jsx" | "mjs" | "cjs" => Language::JavaScript,
             "ts" | "tsx" | "mts" | "cts" => Language::TypeScript,
             "py" => Language::Python,
+            "go" => Language::Go,
+            "cs" => Language::CSharp,
+            "kt" | "kts" => Language::Kotlin,
+            "php" => Language::Php,
+            "rb" => Language::Ruby,
+            "c" | "h" => Language::C,
+            "cpp" | "cc" | "cxx" | "hpp" => Language::Cpp,
+            "dart" => Language::Dart,
+            "swift" => Language::Swift,
             _ => Language::Unknown,
         }
     }

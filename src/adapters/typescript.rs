@@ -1,22 +1,25 @@
 use super::LanguageAdapter;
 use crate::models::{Language, SecretMatch};
 
-// JavaScript / TypeScript Adapter
+// TypeScript Adapter
 
-pub struct JsTsAdapter {
-    #[allow(dead_code)]
-    language: Language,
-}
+pub struct TypeScriptAdapter;
 
-impl JsTsAdapter {
-    pub fn new(language: Language) -> Self {
-        Self { language }
+impl TypeScriptAdapter {
+    pub fn new() -> Self {
+        Self
     }
 }
 
-impl LanguageAdapter for JsTsAdapter {
+impl Default for TypeScriptAdapter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl LanguageAdapter for TypeScriptAdapter {
     fn language(&self) -> Language {
-        self.language
+        Language::TypeScript
     }
 
     fn rewrite_line(&self, match_info: &SecretMatch, line: &str) -> Option<String> {

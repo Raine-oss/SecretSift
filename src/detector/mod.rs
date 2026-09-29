@@ -119,6 +119,16 @@ pub fn is_line_already_using_env(line: &str) -> bool {
         || trimmed.contains("os.getenv(")
         || trimmed.contains("os.environ.get(")
         || trimmed.contains("os.environ[")
+        || trimmed.contains("os.Getenv(")
+        || trimmed.contains("os.LookupEnv(")
+        || trimmed.contains("Environment.GetEnvironmentVariable(")
+        || trimmed.contains("getenv(")
+        || trimmed.contains("$_ENV[")
+        || trimmed.contains("$_SERVER[")
+        || trimmed.contains("ENV[")
+        || trimmed.contains("ENV.fetch(")
+        || trimmed.contains("Platform.environment[")
+        || trimmed.contains("ProcessInfo.processInfo.environment[")
         || trimmed.contains("import.meta.env.")
 }
 

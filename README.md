@@ -120,7 +120,15 @@ SecretSift utilizes language-specific refactoring adapters to generate syntactic
 | **Java** | `.java` | `System.getenv("VAR")` for field declarations, variable assignments, method arguments, and returns. |
 | **JavaScript** | `.js`, `.jsx`, `.mjs`, `.cjs` | `process.env.VAR \|\| ""` to ensure string type safety and prevent `undefined` runtime exceptions. |
 | **TypeScript** | `.ts`, `.tsx`, `.mts`, `.cts` | `process.env.VAR \|\| ""` compatible with strict TypeScript type systems. |
-| **Python** | `.py` | `os.getenv("VAR")` with automated, non-destructive `import os` insertion at the top of existing imports. |
+| **Python** | `.py` | `os.getenv("VAR")` with automated, non-destructive `import os` insertion. |
+| **Go** | `.go` | `os.Getenv("VAR")` with automated AST-friendly `import "os"` management. |
+| **C#** | `.cs` | `Environment.GetEnvironmentVariable("VAR") ?? ""` with `using System;` management. |
+| **Kotlin** | `.kt`, `.kts` | `System.getenv("VAR") ?: ""` for null-safe JVM execution. |
+| **PHP** | `.php` | `getenv('VAR') ?: ''` for standard runtime environment resolution. |
+| **Ruby** | `.rb` | `ENV['VAR'] \|\| ''` for clean hash-based environment access. |
+| **C / C++** | `.c`, `.h`, `.cpp`, `.cc`, `.cxx`, `.hpp` | `getenv("VAR")` with automated `#include <stdlib.h>` / `#include <cstdlib>` management. |
+| **Dart** | `.dart` | `Platform.environment['VAR'] ?? ''` with automated `import 'dart:io';` insertion. |
+| **Swift** | `.swift` | `ProcessInfo.processInfo.environment["VAR"] ?? ""` with automated `import Foundation` insertion. |
 
 ---
 

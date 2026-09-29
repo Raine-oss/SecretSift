@@ -1,6 +1,6 @@
 [package]
 name = "secretsift"
-version = "1.0.0"
+version = "1.1.0"
 edition = "2021"
 authors = ["Raine-oss <https://github.com/Raine-oss>"]
 description = "Turn a private codebase into a public-safe repository."

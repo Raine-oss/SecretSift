@@ -45,7 +45,7 @@ Download precompiled standalone binaries from the [GitHub Releases page](https:/
 
 ```bash
 # Example for Linux x86_64
-curl -LO https://github.com/Raine-oss/SecretSift/releases/download/v1.0.0/secretsift-linux-x86_64.tar.gz
+curl -LO https://github.com/Raine-oss/SecretSift/releases/download/v1.1.0/secretsift-linux-x86_64.tar.gz
 tar -xzf secretsift-linux-x86_64.tar.gz
 chmod +x secretsift
 sudo mv secretsift /usr/local/bin/
@@ -129,6 +129,8 @@ SecretSift utilizes language-specific refactoring adapters to generate syntactic
 | **C / C++** | `.c`, `.h`, `.cpp`, `.cc`, `.cxx`, `.hpp` | `getenv("VAR")` with automated `#include <stdlib.h>` / `#include <cstdlib>` management. |
 | **Dart** | `.dart` | `Platform.environment['VAR'] ?? ''` with automated `import 'dart:io';` insertion. |
 | **Swift** | `.swift` | `ProcessInfo.processInfo.environment["VAR"] ?? ""` with automated `import Foundation` insertion. |
+
+> **Note:** C and C++ share the same C/C++ adapter implementation (`src/adapters/cpp.rs`).
 
 ---
 

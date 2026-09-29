@@ -1,0 +1,28 @@
+# Generated Artifacts
+target/
+**/*.rs.bk
+*.bk
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# SecretSift Backups
+.secretsift-backup/
+.secretsift-backup*
+
+# Temporary Test Artifacts
+demo_project/
+test_temp_*
+test_sandbox/
+test_ci_*
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db

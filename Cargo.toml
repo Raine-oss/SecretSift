@@ -1,0 +1,39 @@
+[package]
+name = "secretsift"
+version = "1.0.0"
+edition = "2021"
+authors = ["Raine-oss <https://github.com/Raine-oss>"]
+description = "Turn a private codebase into a public-safe repository."
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/Raine-oss/SecretSift"
+homepage = "https://github.com/Raine-oss/SecretSift"
+keywords = ["security", "secrets", "scanner", "refactoring", "dotenv"]
+categories = ["command-line-utilities", "development-tools"]
+
+[lib]
+name = "secretsift"
+path = "src/lib.rs"
+
+[[bin]]
+name = "secretsift"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive", "cargo"] }
+colored = "2.1"
+regex = "1.10"
+lazy_static = "1.4"
+walkdir = "2.5"
+ignore = "0.4"
+similar = "2.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = "0.4"
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "scan_benchmark"
+harness = false

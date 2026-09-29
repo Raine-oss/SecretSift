@@ -1,0 +1,93 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-rust-linux:
+    name: Build Linux x86_64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build Binary
+        run: cargo build --release
+      - name: Rename and Compress Artifact
+        run: |
+          mkdir -p dist
+          cp target/release/secretsift dist/secretsift-linux-x86_64
+          tar -czvf dist/secretsift-linux-x86_64.tar.gz -C target/release secretsift
+          cd dist && shasum -a 256 secretsift-linux-x86_64.tar.gz > secretsift-linux-x86_64.tar.gz.sha256
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: secretsift-linux-x86_64
+          path: dist/*
+
+  build-rust-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build Binary
+        run: cargo build --release
+      - name: Rename and Compress Artifact
+        run: |
+          mkdir -p dist
+          cp target/release/secretsift dist/secretsift-macos
+          tar -czvf dist/secretsift-macos.tar.gz -C target/release secretsift
+          cd dist && shasum -a 256 secretsift-macos.tar.gz > secretsift-macos.tar.gz.sha256
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: secretsift-macos
+          path: dist/*
+
+  build-rust-windows:
+    name: Build Windows x86_64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build Binary
+        run: cargo build --release
+      - name: Rename and Compress Artifact
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist
+          Copy-Item target\release\secretsift.exe dist\secretsift-windows-x86_64.exe
+          Compress-Archive -Path target\release\secretsift.exe -DestinationPath dist\secretsift-windows-x86_64.zip
+          $hash = (Get-FileHash -Path dist\secretsift-windows-x86_64.zip -Algorithm SHA256).Hash.ToLower()
+          "$hash  secretsift-windows-x86_64.zip" | Out-File -FilePath dist\secretsift-windows-x86_64.zip.sha256 -Encoding ascii
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: secretsift-windows-x86_64
+          path: dist/*
+
+  publish-release:
+    name: Create GitHub Release
+    needs: [build-rust-linux, build-rust-macos, build-rust-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Prepare Release Assets
+        run: |
+          mkdir -p release-assets
+          cp -r artifacts/*/* release-assets/
+      - name: Publish Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false

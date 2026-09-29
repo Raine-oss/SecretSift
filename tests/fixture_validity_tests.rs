@@ -278,10 +278,14 @@ fn test_go_fixture_validity() {
     assert!(cfg_content.contains("import \"os\""));
 
     if is_command_available("go") {
-        let output = Command::new("go").arg("vet").current_dir(&sandbox).output();
+        let output = Command::new("go")
+            .arg("vet")
+            .arg("./...")
+            .current_dir(&sandbox)
+            .output();
         if let Ok(out) = output {
             assert!(
-                out.status.success() || out.stderr.is_empty(),
+                out.status.success(),
                 "go vet failed on refactored Go code: {}",
                 String::from_utf8_lossy(&out.stderr)
             );

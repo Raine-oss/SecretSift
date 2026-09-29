@@ -28,17 +28,25 @@ impl LanguageAdapter for GoAdapter {
 
         let quoted_double = format!("\"{}\"", secret);
         let quoted_backtick = format!("`{}`", secret);
-
         let replacement = format!("os.Getenv(\"{}\")", var_name);
 
-        if line.contains(&quoted_double) {
-            Some(line.replace(&quoted_double, &replacement))
+        let rewritten = if line.contains(&quoted_double) {
+            line.replace(&quoted_double, &replacement)
         } else if line.contains(&quoted_backtick) {
-            Some(line.replace(&quoted_backtick, &replacement))
+            line.replace(&quoted_backtick, &replacement)
         } else if line.contains(secret) {
-            Some(line.replace(secret, &replacement))
+            line.replace(secret, &replacement)
         } else {
-            None
+            return None;
+        };
+
+        let trimmed = rewritten.trim_start();
+        if trimmed.starts_with("const ") {
+            let indent = &rewritten[..rewritten.len() - trimmed.len()];
+            let without_const = trimmed.trim_start_matches("const ");
+            Some(format!("{}var {}", indent, without_const))
+        } else {
+            Some(rewritten)
         }
     }
 

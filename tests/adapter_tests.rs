@@ -139,7 +139,7 @@ fn test_go_adapter_rewrite_and_import() {
 
     let line = r#"const dbPassword = "super_go_secret_123""#;
     let rewritten = adapter.rewrite_line(&m, line).unwrap();
-    assert_eq!(rewritten, r#"const dbPassword = os.Getenv("DB_PASSWORD")"#);
+    assert_eq!(rewritten, r#"var dbPassword = os.Getenv("DB_PASSWORD")"#);
 
     let go_code = "package main\n\nimport (\n\t\"fmt\"\n)\n\nfunc main() {\n\tconst p = os.Getenv(\"DB_PASSWORD\")\n}\n";
     let post_processed = adapter.post_process_file_content(go_code);

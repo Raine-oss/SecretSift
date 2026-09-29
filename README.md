@@ -25,7 +25,7 @@ SecretSift provides an automated refactoring pipeline:
 2. **Analyze**: Categorizes candidates into `HIGH`, `MEDIUM`, and `LOW` confidence using token signatures and Shannon entropy heuristics.
 3. **Preview**: Renders unified terminal diffs showing exactly how source code, `.env`, `.env.example`, and `.gitignore` will be modified.
 4. **Fix**: Safely replaces literals with idiomatic environment variable calls across supported programming languages.
-5. **Protect**: Automatically adds `.env` to `.gitignore` and creates a restorable snapshot in `.secretsift-backup/`.
+5. **Protect**: Automatically adds `.env` to `.gitignore` during fix operations and creates a restorable snapshot in `.secretsift-backup/`.
 
 ---
 
@@ -70,7 +70,7 @@ Navigate to any project directory:
 cd my-project
 
 # 1. Scan for hardcoded credentials
-secretsift
+secretsift scan
 
 # 2. Preview the proposed modifications without touching disk
 secretsift fix --dry-run
@@ -212,10 +212,10 @@ secretsift check .
 
 ## Safety Model
 
-- **Zero Unprompted Modifications**: Running `secretsift` or `secretsift scan` is strictly read-only.
+- **Zero Unprompted Modifications**: Running `secretsift scan` is strictly read-only.
 - **Preservation of Relative Layout**: Snapshots in `.secretsift-backup/` mirror the exact relative file tree of modified files.
 - **Idempotency**: Running `secretsift fix` repeatedly on an already-refactored codebase produces zero changes and avoids duplicate `.env` entries.
-- **Gitignore Enforcement**: Guarantees `.env` is present in `.gitignore` so newly extracted credentials are not committed.
+- **Gitignore Enforcement**: Ensures `.env` is present in `.gitignore` during fix operations so newly extracted credentials are not committed.
 
 ---
 

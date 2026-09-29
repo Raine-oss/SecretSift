@@ -237,10 +237,30 @@ secretsift check .
 
 ## Development / Testing
 
+### Validation Tiers
+
+SecretSift enforces rigorous verification across all supported languages:
+
+1. **Native Compiler & Syntax Verification** (Run during standard test suite when toolchains are installed):
+   - **Rust**: `cargo check`
+   - **Java**: `javac`
+   - **Python**: `python3 -m py_compile`
+   - **JavaScript**: `node -c`
+   - **C / C++**: `g++ -fsyntax-only`
+
+2. **Toolchain-Conditional Compiler Validation & Structural AST Verification**:
+   - **Go**: `go vet` / `go build` (conditional) + automated `import "os"` AST block injection verification.
+   - **C#**: `dotnet build` (conditional) + `using System;` namespace injection verification.
+   - **Kotlin**: `kotlinc` (conditional) + JVM null-safe Elvis syntax verification.
+   - **PHP**: `php -l` (conditional) + `getenv(...)` runtime syntax verification.
+   - **Ruby**: `ruby -c` (conditional) + hash environment syntax verification.
+   - **Dart**: `dart analyze` (conditional) + `import 'dart:io';` import injection verification.
+   - **Swift**: `swiftc -parse` (conditional) + `import Foundation` import injection verification.
+
 ### Prerequisites
 - Stable Rust toolchain (Rust 1.80.0+)
 - Cargo package manager
-- Node.js, Python 3, and Java Development Kit (for running compiler-validity test suites)
+- Node.js, Python 3, OpenJDK, GCC/G++ (standard verification tools)
 
 ### Building and Testing
 
@@ -255,7 +275,7 @@ cargo fmt --all -- --check
 # Run linter
 cargo clippy --all-targets --all-features -- -D warnings
 
-# Execute full test suite (21 tests across 7 suites)
+# Execute full test suite (38 tests across 7 suites)
 cargo test
 
 # Run Criterion benchmarks

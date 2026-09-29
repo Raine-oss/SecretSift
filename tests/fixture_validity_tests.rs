@@ -23,6 +23,16 @@ fn copy_dir_all(src: &Path, dst: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
+// Toolchain Availability Helper
+
+fn is_command_available(cmd: &str) -> bool {
+    Command::new("which")
+        .arg(cmd)
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
+}
+
 // Rust Project Fixture Test
 
 #[test]
@@ -267,6 +277,17 @@ fn test_go_fixture_validity() {
     assert!(cfg_content.contains("os.Getenv(\"DATABASE_URL\")"));
     assert!(cfg_content.contains("import \"os\""));
 
+    if is_command_available("go") {
+        let output = Command::new("go").arg("vet").current_dir(&sandbox).output();
+        if let Ok(out) = output {
+            assert!(
+                out.status.success() || out.stderr.is_empty(),
+                "go vet failed on refactored Go code: {}",
+                String::from_utf8_lossy(&out.stderr)
+            );
+        }
+    }
+
     let _ = fs::remove_dir_all(&sandbox);
 }
 
@@ -302,6 +323,20 @@ fn test_csharp_fixture_validity() {
     assert!(cfg_content.contains("Environment.GetEnvironmentVariable(\"DATABASE_URL\")"));
     assert!(cfg_content.contains("using System;"));
 
+    if is_command_available("dotnet") {
+        let output = Command::new("dotnet")
+            .arg("build")
+            .current_dir(&sandbox)
+            .output();
+        if let Ok(out) = output {
+            assert!(
+                out.status.success() || out.stderr.is_empty(),
+                "dotnet build check: {}",
+                String::from_utf8_lossy(&out.stderr)
+            );
+        }
+    }
+
     let _ = fs::remove_dir_all(&sandbox);
 }
 
@@ -335,6 +370,22 @@ fn test_kotlin_fixture_validity() {
 
     let cfg_content = fs::read_to_string(sandbox.join("Config.kt")).unwrap();
     assert!(cfg_content.contains("System.getenv(\"DATABASE_URL\") ?: \"\""));
+
+    if is_command_available("kotlinc") {
+        let output = Command::new("kotlinc")
+            .arg(sandbox.join("Config.kt"))
+            .arg(sandbox.join("Main.kt"))
+            .arg("-d")
+            .arg(sandbox.join("out.jar"))
+            .output();
+        if let Ok(out) = output {
+            assert!(
+                out.status.success(),
+                "kotlinc failed: {}",
+                String::from_utf8_lossy(&out.stderr)
+            );
+        }
+    }
 
     let _ = fs::remove_dir_all(&sandbox);
 }
@@ -373,6 +424,20 @@ fn test_php_fixture_validity() {
             || cfg_content.contains("getenv('DB_URL') ?: ''")
     );
 
+    if is_command_available("php") {
+        let output = Command::new("php")
+            .arg("-l")
+            .arg(sandbox.join("config.php"))
+            .output();
+        if let Ok(out) = output {
+            assert!(
+                out.status.success(),
+                "php -l lint failed: {}",
+                String::from_utf8_lossy(&out.stderr)
+            );
+        }
+    }
+
     let _ = fs::remove_dir_all(&sandbox);
 }
 
@@ -406,6 +471,20 @@ fn test_ruby_fixture_validity() {
 
     let cfg_content = fs::read_to_string(sandbox.join("config.rb")).unwrap();
     assert!(cfg_content.contains("ENV['DATABASE_URL'] || ''"));
+
+    if is_command_available("ruby") {
+        let output = Command::new("ruby")
+            .arg("-c")
+            .arg(sandbox.join("config.rb"))
+            .output();
+        if let Ok(out) = output {
+            assert!(
+                out.status.success(),
+                "ruby -c syntax check failed: {}",
+                String::from_utf8_lossy(&out.stderr)
+            );
+        }
+    }
 
     let _ = fs::remove_dir_all(&sandbox);
 }
@@ -490,6 +569,20 @@ fn test_dart_fixture_validity() {
     assert!(cfg_content.contains("Platform.environment['DATABASE_URL'] ?? ''"));
     assert!(cfg_content.contains("import 'dart:io';"));
 
+    if is_command_available("dart") {
+        let output = Command::new("dart")
+            .arg("analyze")
+            .arg(sandbox.join("config.dart"))
+            .output();
+        if let Ok(out) = output {
+            assert!(
+                out.status.success(),
+                "dart analyze check: {}",
+                String::from_utf8_lossy(&out.stderr)
+            );
+        }
+    }
+
     let _ = fs::remove_dir_all(&sandbox);
 }
 
@@ -524,6 +617,20 @@ fn test_swift_fixture_validity() {
     let cfg_content = fs::read_to_string(sandbox.join("config.swift")).unwrap();
     assert!(cfg_content.contains("ProcessInfo.processInfo.environment[\"DATABASE_URL\"] ?? \"\""));
     assert!(cfg_content.contains("import Foundation"));
+
+    if is_command_available("swiftc") {
+        let output = Command::new("swiftc")
+            .arg("-parse")
+            .arg(sandbox.join("config.swift"))
+            .output();
+        if let Ok(out) = output {
+            assert!(
+                out.status.success(),
+                "swiftc parse check: {}",
+                String::from_utf8_lossy(&out.stderr)
+            );
+        }
+    }
 
     let _ = fs::remove_dir_all(&sandbox);
 }

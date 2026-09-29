@@ -41,10 +41,21 @@ cargo install --git https://github.com/Raine-oss/SecretSift.git
 
 ### Method 2: Download Prebuilt Release Binaries
 
-Download precompiled standalone binaries from the [GitHub Releases page](https://github.com/Raine-oss/SecretSift/releases):
+Download standalone precompiled binaries from the [GitHub Releases page](https://github.com/Raine-oss/SecretSift/releases):
+
+| Operating System | Architecture | Package |
+| :--- | :--- | :--- |
+| **Linux (glibc)** | `x86_64` (AMD64 / Intel) | `secretsift-linux-x86_64.tar.gz` |
+| **Linux (musl)** | `x86_64` (Static / Alpine / Arch) | `secretsift-linux-x86_64-musl.tar.gz` |
+| **Linux (ARM64)** | `aarch64` (AWS Graviton / Pi 4/5) | `secretsift-linux-arm64.tar.gz` |
+| **Linux (ARMv7)** | `armv7` (32-bit Pi / IoT) | `secretsift-linux-armv7.tar.gz` |
+| **macOS** | Apple Silicon (`arm64` M1/M2/M3/M4) | `secretsift-darwin-arm64.tar.gz` |
+| **macOS** | Intel (`x86_64`) | `secretsift-darwin-x86_64.tar.gz` |
+| **Windows** | `x86_64` (64-bit) | `secretsift-windows-x86_64.zip` |
+| **Windows** | `i686` (32-bit) | `secretsift-windows-i686.zip` |
 
 ```bash
-# Example for Linux x86_64
+# Example for Linux / macOS
 curl -LO https://github.com/Raine-oss/SecretSift/releases/download/v1.1.0/secretsift-linux-x86_64.tar.gz
 tar -xzf secretsift-linux-x86_64.tar.gz
 chmod +x secretsift

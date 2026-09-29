@@ -9,71 +9,123 @@ permissions:
   contents: write
 
 jobs:
-  build-rust-linux:
-    name: Build Linux x86_64
-    runs-on: ubuntu-latest
+  build-matrix:
+    name: Build (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux x86_64 (GNU & Static MUSL)
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            use_cross: false
+            artifact_name: secretsift-linux-x86_64
+            archive_ext: tar.gz
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            use_cross: true
+            artifact_name: secretsift-linux-x86_64-musl
+            archive_ext: tar.gz
+
+          # Linux ARM64 / AArch64 (GNU & Static MUSL)
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            use_cross: true
+            artifact_name: secretsift-linux-arm64
+            archive_ext: tar.gz
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            use_cross: true
+            artifact_name: secretsift-linux-arm64-musl
+            archive_ext: tar.gz
+
+          # Linux ARMv7 (32-bit)
+          - os: ubuntu-latest
+            target: armv7-unknown-linux-gnueabihf
+            use_cross: true
+            artifact_name: secretsift-linux-armv7
+            archive_ext: tar.gz
+
+          # macOS (Intel & Apple Silicon)
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            use_cross: false
+            artifact_name: secretsift-darwin-x86_64
+            archive_ext: tar.gz
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            use_cross: false
+            artifact_name: secretsift-darwin-arm64
+            archive_ext: tar.gz
+
+          # Windows (x86_64, x86 32-bit, ARM64)
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            use_cross: false
+            artifact_name: secretsift-windows-x86_64
+            archive_ext: zip
+          - os: windows-latest
+            target: i686-pc-windows-msvc
+            use_cross: false
+            artifact_name: secretsift-windows-i686
+            archive_ext: zip
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Build Binary
-        run: cargo build --release
-      - name: Rename and Compress Artifact
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install Cross (if needed)
+        if: matrix.use_cross
+        run: cargo install cross --git https://github.com/cross-rs/cross.git --rev 6c303f2
+
+      - name: Build Binary (Native / Target)
+        if: "!matrix.use_cross"
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Build Binary (Cross)
+        if: matrix.use_cross
+        run: cross build --release --target ${{ matrix.target }}
+
+      - name: Package Unix Artifacts
+        if: matrix.os != 'windows-latest'
         run: |
           mkdir -p dist
-          cp target/release/secretsift dist/secretsift-linux-x86_64
-          tar -czvf dist/secretsift-linux-x86_64.tar.gz -C target/release secretsift
-          cd dist && shasum -a 256 secretsift-linux-x86_64.tar.gz > secretsift-linux-x86_64.tar.gz.sha256
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: secretsift-linux-x86_64
-          path: dist/*
+          BIN_PATH="target/${{ matrix.target }}/release/secretsift"
+          cp "$BIN_PATH" "dist/${{ matrix.artifact_name }}"
+          tar -czf "dist/${{ matrix.artifact_name }}.tar.gz" -C "target/${{ matrix.target }}/release" secretsift
+          cd dist
+          if command -v shasum >/dev/null 2>&1; then
+            shasum -a 256 "${{ matrix.artifact_name }}.tar.gz" > "${{ matrix.artifact_name }}.tar.gz.sha256"
+          else
+            sha256sum "${{ matrix.artifact_name }}.tar.gz" > "${{ matrix.artifact_name }}.tar.gz.sha256"
+          fi
 
-  build-rust-macos:
-    name: Build macOS
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Build Binary
-        run: cargo build --release
-      - name: Rename and Compress Artifact
-        run: |
-          mkdir -p dist
-          cp target/release/secretsift dist/secretsift-macos
-          tar -czvf dist/secretsift-macos.tar.gz -C target/release secretsift
-          cd dist && shasum -a 256 secretsift-macos.tar.gz > secretsift-macos.tar.gz.sha256
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: secretsift-macos
-          path: dist/*
-
-  build-rust-windows:
-    name: Build Windows x86_64
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - name: Build Binary
-        run: cargo build --release
-      - name: Rename and Compress Artifact
+      - name: Package Windows Artifacts
+        if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist
-          Copy-Item target\release\secretsift.exe dist\secretsift-windows-x86_64.exe
-          Compress-Archive -Path target\release\secretsift.exe -DestinationPath dist\secretsift-windows-x86_64.zip
-          $hash = (Get-FileHash -Path dist\secretsift-windows-x86_64.zip -Algorithm SHA256).Hash.ToLower()
-          "$hash  secretsift-windows-x86_64.zip" | Out-File -FilePath dist\secretsift-windows-x86_64.zip.sha256 -Encoding ascii
+          $bin = "target/${{ matrix.target }}/release/secretsift.exe"
+          Copy-Item $bin "dist/${{ matrix.artifact_name }}.exe"
+          Compress-Archive -Path $bin -DestinationPath "dist/${{ matrix.artifact_name }}.zip"
+          $hash = (Get-FileHash -Path "dist/${{ matrix.artifact_name }}.zip" -Algorithm SHA256).Hash.ToLower()
+          "$hash  ${{ matrix.artifact_name }}.zip" | Out-File -FilePath "dist/${{ matrix.artifact_name }}.zip.sha256" -Encoding ascii
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: secretsift-windows-x86_64
+          name: ${{ matrix.artifact_name }}
           path: dist/*
 
   publish-release:
-    name: Create GitHub Release
-    needs: [build-rust-linux, build-rust-macos, build-rust-windows]
+    name: Create Multi-Platform GitHub Release
+    needs: [build-matrix]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
